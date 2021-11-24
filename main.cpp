@@ -9,25 +9,27 @@ ILOSTLBEGIN;
 
 int main()
 {
-    //Create data (Random)
-        srand(time(NULL));
-                //suppose there are 20 place in the data
-        int n=20;
-        vector<double> xPos(n), yPos(n);
-        int randXPos, randYPos;
-        for(int i=0; i<n; i++) {
-            //suppose coordinates between 0 and 1000
-            randXPos = rand()%1000;
-            randYPos = rand()%1000;
-            xPos[i] = randXPos;
-            yPos[i] = randYPos;
+    freopen("data.txt", "rt", stdin);
+    freopen("solution.txt", "wt", stdout);
+    ios::sync_with_stdio(false);
+    cin.tie(0), cout.tie(0);
+
+    int n;
+    cin>>n;
+
+    vector<double> xPos(n), yPos(n);
+    for(int i=0; i<n; i++) {
+        cin>>xPos[i]>>yPos[i];
+    }
+
+    vector<vector<double>> cost(n, vector<double>(n));
+    for(int i=0; i<n; i++) {
+        for(int j=0; j<n; j++) {
+            cost[i][j] = sqrt(pow(xPos[j]-xPos[i], 2) + pow(yPos[j]-yPos[i], 2));
         }
-        vector<vector<double>> cost(n, vector<double>(n));
-        for(int i=0; i<n; i++) {
-            for(int j=0; j<n; j++) {
-                cost[i][j] = sqrt(pow(xPos[j]-xPos[i], 2) + pow(yPos[j]-yPos[i], 2));
-            }
-        }
+    }
+
+
     IloEnv env;
     try{
         IloModel model(env);
@@ -78,12 +80,14 @@ int main()
             model.add(expr == 1);
             expr.clear();
         }
-        /* u[i] denodes the order in which point i is accessed, u[i] = n denotes that place 0 must be
-           accessed last. This ensures a valid cycle and a valid solution */
-        //for all i,j >0 and i!=j: u[i]-u[j]+(n-1)*x[i][j] <= n-2
+        /* u[i] is a dummy variable, if the solution has no subtour, the model can find the variables
+        u[i] satisfy the constraint: u[i]-u[j]+n*x[i][j] <= n-1 with all i, j >=1 (i!=j). For easy of
+        visualization, u[i] now represents the order of visits of the nodes. If
+        the solution has subtours it is not possible. */
+
         IloNumVarArray u(env, n);
         for(int i=1; i<n; i++) {
-            u[i] = IloNumVar(env, 0, IloInfinity, ILOFLOAT);
+            u[i] = IloNumVar(env, 1, n-1, ILOINT);
         }
 
         for(int i=1; i<n; i++) {
@@ -101,6 +105,8 @@ int main()
         /*------SOLVE----------------*/
 
         IloCplex cplex(model);
+
+        cplex.exportModel("TSPmodel_1.lp");
         cplex.solve();
 
         double sumCost = cplex.getObjValue();

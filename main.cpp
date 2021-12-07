@@ -9,8 +9,8 @@ ILOSTLBEGIN;
 
 int main()
 {
-    freopen("data.txt", "rt", stdin);
-    freopen("solution.txt", "wt", stdout);
+    freopen("/home/quan/Desktop/Ai_Do?/ORProject/TestDataFile/TSP/ulysses22.tsp", "rt", stdin);
+    freopen("solution_for_ulysses22MTZ.txt", "wt", stdout);
     ios::sync_with_stdio(false);
     cin.tie(0), cout.tie(0);
 
@@ -19,6 +19,8 @@ int main()
 
     vector<double> xPos(n), yPos(n);
     for(int i=0; i<n; i++) {
+        int index;
+        cin>>index;
         cin>>xPos[i]>>yPos[i];
     }
 
@@ -106,7 +108,7 @@ int main()
 
         IloCplex cplex(model);
 
-        cplex.exportModel("TSPmodel_1.lp");
+        cplex.exportModel("TSP-MTZ_ulysses22.lp");
         cplex.solve();
 
         double sumCost = cplex.getObjValue();
